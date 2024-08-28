@@ -1,54 +1,110 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../service/provider.dart';
+import 'article.dart';
+import '../utils/utils.dart';
 
 class FavoritesScreen extends StatelessWidget {
+  const FavoritesScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<NewsProvider>(context);
+    final favoriteArticles = provider.favoriteArticles;
+
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            TextButton(
-              child: Text('News'),
-              onPressed: () {},
-            ),
-            SizedBox(width: 10),
-            TextButton(
-              child: Icon(Icons.favorite, color: Colors.red),
-              onPressed: () {},
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.blue.shade100,
-              ),
-            ),
-          ],
-        ),
+        title: const Text('Favorite Articles'),
       ),
-      body: ListView.builder(
-        itemCount: 2, // Replace with actual favorite count
-        itemBuilder: (context, index) {
-          return Card(
-            margin: EdgeInsets.all(8),
-            child: ListTile(
-              leading: Image.network('https://placeholder.com/100'),
-              title: Text(
-                  'Purus suspendisse adipiscing quam. Varius magnis in nisl.'),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                      'At leo tellus ornare adipiscing adipiscing pharetra nisi ornare.'),
-                  Row(
-                    children: [
-                      Icon(Icons.access_time, size: 16),
-                      SizedBox(width: 4),
-                      Text('Mon, 21 Dec 2020 14:57 GMT'),
-                    ],
+      body: favoriteArticles.isEmpty
+          ? const Center(child: Text('No favorites added'))
+          : ListView.builder(
+              itemCount: favoriteArticles.length,
+              itemBuilder: (context, index) {
+                final article = favoriteArticles[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ArticleDetailScreen(
+                          article: article,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.all(2),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        // Leading widget (image)
+                        Container(
+                          width: 100, // Fixed width for the image
+                          height: 100, // You can set a height if needed
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            image: DecorationImage(
+                              image: NetworkImage(article.urlToImage ?? ''),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          child: article.urlToImage == null
+                              ? const Icon(
+                                  Icons.broken_image,
+                                  size: 50,
+                                )
+                              : null,
+                        ),
+                        const SizedBox(
+                            width: 8), // Space between image and text content
+                        // Title and subtitle
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Title
+                              Text(
+                                article.title ?? 'No title',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              // Subtitle
+                              Row(
+                                children: [
+                                  const Icon(Icons.edit_calendar_rounded,
+                                      size: 16),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    article.publishedAt != null
+                                        ? formatDate(article.publishedAt!)
+                                        : 'No publish date',
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }

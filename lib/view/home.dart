@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'fav.dart';
+import 'news.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -7,67 +10,106 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+  late PageController _pageController;
+  int _selectedIndex = 0;
   final bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(); // Initialize the PageController here
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose(); // Dispose of the PageController
+    super.dispose();
+  }
+
+  void _onButtonPressed(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            TextButton(
-              child: Text('News'),
-              onPressed: () {},
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.blue.shade100,
+            GestureDetector(
+              onTap: () => _onButtonPressed(0),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width * 0.1,
+                    vertical: 10),
+                decoration: BoxDecoration(
+                  color:
+                      _selectedIndex == 0 ? Colors.blue.shade100 : Colors.white,
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.list),
+                    Text(
+                      ' News',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ],
+                ),
               ),
             ),
-            SizedBox(width: 10),
-            TextButton(
-              child: Icon(Icons.favorite, color: Colors.red),
-              onPressed: () {},
+            GestureDetector(
+              onTap: () => _onButtonPressed(1),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width * 0.1,
+                    vertical: 10),
+                decoration: BoxDecoration(
+                  color:
+                      _selectedIndex == 1 ? Colors.blue.shade100 : Colors.white,
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.favorite,
+                      color: Colors.red,
+                    ),
+                    Text(
+                      ' Fav',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
       body: _isLoading
-          ? Center(
+          ? const Center(
               child: CircularProgressIndicator(),
             )
-          : ListView.builder(
-              itemCount: 5, // Replace with actual article count
-              itemBuilder: (context, index) {
-                return Card(
-                  margin: EdgeInsets.all(8),
-                  child: ListTile(
-                    leading: Image.network('https://placeholder.com/100'),
-                    title: Text(
-                        'Purus suspendisse adipiscing quam. Varius magnis in nisl.'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                            'At leo tellus ornare adipiscing adipiscing pharetra nisi ornare.'),
-                        Row(
-                          children: [
-                            Icon(Icons.access_time, size: 16),
-                            SizedBox(width: 4),
-                            Text('Mon, 21 Dec 2020 14:57 GMT'),
-                          ],
-                        ),
-                      ],
-                    ),
-                    trailing: ElevatedButton(
-                      child: Icon(Icons.favorite_border),
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pink.shade100,
-                      ),
-                    ),
-                  ),
-                );
+          : PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
               },
+              children: const [
+                NewsFeedScreen(),
+                FavoritesScreen(),
+              ],
             ),
     );
   }
